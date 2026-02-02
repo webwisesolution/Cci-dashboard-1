@@ -1,0 +1,2429 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎛️ Agent Operations Dashboard | CCI Dubai</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #1a237e;
+            --primary-light: #534bae;
+            --secondary: #00acc1;
+            --accent: #ff6f00;
+            --success: #2e7d32;
+            --warning: #f57c00;
+            --danger: #c62828;
+            --vip: #d4af37;
+            --gray-50: #f9fafb;
+            --gray-100: #f3f4f6;
+            --gray-200: #e5e7eb;
+            --gray-300: #d1d5db;
+            --gray-500: #6b7280;
+            --gray-700: #374151;
+            --gray-900: #111827;
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background-color: #f5f7fb;
+            color: var(--gray-900);
+            overflow-x: hidden;
+        }
+
+        /* Dashboard Container */
+        .dashboard-container {
+            display: grid;
+            grid-template-columns: 320px 1fr 380px;
+            grid-template-rows: 70px 1fr;
+            min-height: 100vh;
+            max-width: 100vw;
+        }
+
+        /* Top Bar */
+        .top-bar {
+            grid-column: 1 / -1;
+            background: white;
+            border-bottom: 1px solid var(--gray-200);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 24px;
+            box-shadow: var(--shadow-sm);
+            z-index: 100;
+        }
+
+        .logo-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 700;
+            font-size: 22px;
+            color: var(--primary);
+        }
+
+        .logo-icon {
+            background: var(--primary);
+            color: white;
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .live-indicator {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: #e8f5e9;
+            color: var(--success);
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-left: 10px;
+        }
+
+        .live-indicator .pulse {
+            width: 8px;
+            height: 8px;
+            background: var(--success);
+            border-radius: 50%;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(46, 125, 50, 0.7); }
+            70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(46, 125, 50, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(46, 125, 50, 0); }
+        }
+
+        .agent-info {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .agent-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-weight: 500;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .status-available {
+            background: #e8f5e9;
+            color: var(--success);
+        }
+
+        .status-on-call {
+            background: #fff3e0;
+            color: var(--warning);
+        }
+
+        .status-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+
+        .available {
+            background: var(--success);
+            animation: pulse 2s infinite;
+        }
+
+        .on-call {
+            background: var(--warning);
+            animation: pulse 1s infinite;
+        }
+
+        .shift-timer {
+            background: var(--gray-100);
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .top-bar-actions {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .notification-container {
+            position: relative;
+        }
+
+        .notification-badge {
+            position: relative;
+            cursor: pointer;
+        }
+
+        .notification-count {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: var(--danger);
+            color: white;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            font-size: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+        }
+
+        .notification-dropdown {
+            position: absolute;
+            top: 45px;
+            right: 0;
+            width: 350px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: var(--shadow-lg);
+            z-index: 1000;
+            display: none;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .notification-dropdown.active {
+            display: block;
+            animation: slideDown 0.3s ease;
+        }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .notification-header {
+            padding: 16px;
+            border-bottom: 1px solid var(--gray-200);
+            font-weight: 600;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .notification-list {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .notification-item {
+            padding: 16px;
+            border-bottom: 1px solid var(--gray-100);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .notification-item:hover {
+            background: var(--gray-50);
+        }
+
+        .notification-item.unread {
+            background: #f0f7ff;
+        }
+
+        .notification-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            margin-right: 12px;
+        }
+
+        .notification-vip {
+            background: linear-gradient(135deg, #f9e79f, #d4af37);
+        }
+
+        .notification-urgent {
+            background: linear-gradient(135deg, #ffcdd2, #c62828);
+        }
+
+        .notification-normal {
+            background: linear-gradient(135deg, var(--gray-300), var(--gray-500));
+        }
+
+        .language-toggle {
+            position: relative;
+        }
+
+        .language-dropdown {
+            position: absolute;
+            top: 45px;
+            right: 0;
+            background: white;
+            border-radius: 8px;
+            box-shadow: var(--shadow-lg);
+            display: none;
+            width: 120px;
+            z-index: 100;
+        }
+
+        .language-dropdown.active {
+            display: block;
+        }
+
+        .language-option {
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .language-option:hover {
+            background: var(--gray-50);
+        }
+
+        .simulation-controls {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-left: 20px;
+        }
+
+        .sim-btn {
+            padding: 6px 12px;
+            background: var(--gray-100);
+            border: 1px solid var(--gray-300);
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .sim-btn:hover {
+            background: var(--gray-200);
+        }
+
+        .sim-btn.primary {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        /* Left Panel - Live Requests Queue */
+        .left-panel {
+            background: white;
+            border-right: 1px solid var(--gray-200);
+            padding: 20px;
+            overflow-y: auto;
+            height: calc(100vh - 70px);
+        }
+
+        .panel-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .filter-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .filter-tab {
+            padding: 8px 16px;
+            background: var(--gray-100);
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+            color: var(--gray-700);
+        }
+
+        .filter-tab.active {
+            background: var(--primary);
+            color: white;
+        }
+
+        .search-box {
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 10px 16px 10px 40px;
+            border: 1px solid var(--gray-300);
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(26, 35, 126, 0.1);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--gray-500);
+        }
+
+        .queue-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .queue-item {
+            background: white;
+            border: 1px solid var(--gray-200);
+            border-radius: 10px;
+            padding: 16px;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .queue-item:hover {
+            border-color: var(--primary);
+            box-shadow: var(--shadow);
+            transform: translateY(-2px);
+        }
+
+        .queue-item.active {
+            border-color: var(--primary);
+            background: #f0f2ff;
+            box-shadow: var(--shadow);
+        }
+
+        .queue-item.new-request {
+            animation: highlight 2s ease;
+            border-left: 4px solid var(--accent);
+        }
+
+        @keyframes highlight {
+            0% { background: #fff8e1; }
+            100% { background: white; }
+        }
+
+        .priority-badge {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 6px;
+            height: 100%;
+        }
+
+        .priority-vip {
+            background: var(--vip);
+        }
+
+        .priority-urgent {
+            background: var(--danger);
+        }
+
+        .priority-normal {
+            background: var(--gray-300);
+        }
+
+        .queue-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 8px;
+        }
+
+        .guest-name {
+            font-weight: 600;
+            font-size: 16px;
+            margin-bottom: 4px;
+        }
+
+        .property-name {
+            color: var(--gray-700);
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+
+        .queue-details {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 13px;
+            color: var(--gray-600);
+        }
+
+        .issue-type {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 8px;
+            background: var(--gray-100);
+            border-radius: 12px;
+        }
+
+        .channel-badge {
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 500;
+            color: white;
+        }
+
+        .channel-call {
+            background: var(--success);
+        }
+
+        .channel-whatsapp {
+            background: #25D366;
+        }
+
+        .channel-chat {
+            background: var(--primary);
+        }
+
+        .channel-email {
+            background: var(--gray-700);
+        }
+
+        .sla-timer {
+            font-weight: 600;
+            font-size: 13px;
+        }
+
+        .sla-critical {
+            color: var(--danger);
+            animation: blink 1s infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .incoming-alert {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: var(--accent);
+            color: white;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            animation: bounce 1s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+
+        /* Main Panel */
+        .main-panel {
+            padding: 24px;
+            overflow-y: auto;
+            height: calc(100vh - 70px);
+        }
+
+        .main-panel-section {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: var(--shadow);
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--gray-200);
+        }
+
+        .section-title i {
+            color: var(--primary);
+            margin-right: 10px;
+        }
+
+        .guest-info-grid, .property-info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .info-item {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .info-label {
+            font-size: 13px;
+            color: var(--gray-500);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .info-value {
+            font-size: 16px;
+            font-weight: 500;
+        }
+
+        .vip-flag {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: linear-gradient(135deg, #f9e79f, #d4af37);
+            color: #5d4200;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 14px;
+            margin-top: 8px;
+        }
+
+        .preferences-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .preference-tag {
+            background: var(--gray-100);
+            padding: 6px 12px;
+            border-radius: 16px;
+            font-size: 13px;
+        }
+
+        /* Right Panel */
+        .right-panel {
+            background: white;
+            border-left: 1px solid var(--gray-200);
+            padding: 24px;
+            overflow-y: auto;
+            height: calc(100vh - 70px);
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .sla-widget {
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            color: white;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .sla-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .sla-timer-large {
+            font-size: 48px;
+            font-weight: 700;
+            text-align: center;
+            margin: 20px 0;
+            font-family: monospace;
+        }
+
+        .priority-level {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: 600;
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .escalate-btn {
+            background: var(--accent);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-weight: 600;
+            width: 100%;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 20px;
+        }
+
+        .escalate-btn:hover {
+            background: #e65100;
+            transform: translateY(-2px);
+        }
+
+        /* Issue Handling Panel */
+        .issue-category-selector {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .issue-category {
+            padding: 12px;
+            border: 1px solid var(--gray-300);
+            border-radius: 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: 500;
+        }
+
+        .issue-category:hover {
+            border-color: var(--primary);
+            background: #f0f2ff;
+        }
+
+        .issue-category.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .quick-actions {
+            display: flex;
+            gap: 12px;
+            margin: 20px 0;
+        }
+
+        .quick-action-btn {
+            flex: 1;
+            padding: 12px;
+            border: 1px solid var(--gray-300);
+            border-radius: 8px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .quick-action-btn:hover {
+            border-color: var(--primary);
+            background: #f0f2ff;
+        }
+
+        .status-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .status-btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .status-open {
+            background: #e3f2fd;
+            color: var(--primary);
+        }
+
+        .status-in-progress {
+            background: #fff3e0;
+            color: var(--warning);
+        }
+
+        .status-resolved {
+            background: #e8f5e9;
+            color: var(--success);
+        }
+
+        .status-btn.active {
+            box-shadow: inset 0 0 0 2px currentColor;
+        }
+
+        /* Communication Panel */
+        .channel-tabs {
+            display: flex;
+            border-bottom: 1px solid var(--gray-200);
+            margin-bottom: 20px;
+        }
+
+        .channel-tab {
+            padding: 12px 20px;
+            border: none;
+            background: none;
+            cursor: pointer;
+            font-weight: 500;
+            position: relative;
+        }
+
+        .channel-tab.active {
+            color: var(--primary);
+        }
+
+        .channel-tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: var(--primary);
+        }
+
+        .channel-tab.has-new {
+            position: relative;
+        }
+
+        .channel-tab.has-new::before {
+            content: '';
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            width: 8px;
+            height: 8px;
+            background: var(--accent);
+            border-radius: 50%;
+        }
+
+        .message-history {
+            height: 250px;
+            overflow-y: auto;
+            border: 1px solid var(--gray-200);
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 16px;
+            background: var(--gray-50);
+        }
+
+        .message {
+            margin-bottom: 16px;
+            max-width: 80%;
+        }
+
+        .message.guest {
+            margin-left: auto;
+        }
+
+        .message-content {
+            padding: 12px;
+            border-radius: 12px;
+            font-size: 14px;
+            position: relative;
+        }
+
+        .message.agent .message-content {
+            background: white;
+            border: 1px solid var(--gray-300);
+            border-bottom-left-radius: 4px;
+        }
+
+        .message.guest .message-content {
+            background: var(--primary);
+            color: white;
+            border-bottom-right-radius: 4px;
+        }
+
+        .message-time {
+            font-size: 11px;
+            color: var(--gray-500);
+            margin-top: 4px;
+            text-align: right;
+        }
+
+        .incoming-message {
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .message-input-container {
+            display: flex;
+            gap: 10px;
+        }
+
+        .message-input {
+            flex: 1;
+            padding: 12px;
+            border: 1px solid var(--gray-300);
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        .send-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            width: 50px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .send-btn:hover {
+            background: var(--primary-light);
+        }
+
+        /* Resolution Panel */
+        .resolution-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .text-input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--gray-300);
+            border-radius: 8px;
+            font-size: 14px;
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .close-ticket-btn {
+            background: var(--success);
+            color: white;
+            border: none;
+            padding: 16px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .close-ticket-btn:hover {
+            background: #1b5e20;
+            transform: translateY(-2px);
+        }
+
+        /* Toast Notifications */
+        .toast-container {
+            position: fixed;
+            top: 90px;
+            right: 20px;
+            z-index: 10000;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-width: 350px;
+        }
+
+        .toast {
+            background: white;
+            border-radius: 8px;
+            padding: 16px;
+            box-shadow: var(--shadow-lg);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            animation: slideInRight 0.3s ease;
+            border-left: 4px solid;
+        }
+
+        .toast.vip {
+            border-left-color: var(--vip);
+        }
+
+        .toast.urgent {
+            border-left-color: var(--danger);
+        }
+
+        .toast.normal {
+            border-left-color: var(--primary);
+        }
+
+        .toast-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            flex-shrink: 0;
+        }
+
+        .toast-content {
+            flex: 1;
+        }
+
+        .toast-title {
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .toast-message {
+            font-size: 13px;
+            color: var(--gray-700);
+        }
+
+        .toast-close {
+            background: none;
+            border: none;
+            color: var(--gray-500);
+            cursor: pointer;
+            font-size: 18px;
+        }
+
+        @keyframes slideInRight {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        /* Stats Widget */
+        .stats-widget {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: var(--shadow);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 16px;
+            border-radius: 8px;
+            background: var(--gray-50);
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: var(--gray-500);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1400px) {
+            .dashboard-container {
+                grid-template-columns: 280px 1fr 350px;
+            }
+        }
+
+        @media (max-width: 1200px) {
+            .dashboard-container {
+                grid-template-columns: 1fr;
+                grid-template-rows: auto;
+            }
+            
+            .left-panel, .main-panel, .right-panel {
+                height: auto;
+                border: none;
+                margin-bottom: 0;
+            }
+            
+            .right-panel {
+                border-top: 1px solid var(--gray-200);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Top Bar -->
+        <header class="top-bar">
+            <div class="logo-container">
+                <div class="logo">
+                    <div class="logo-icon">
+                        <i class="fas fa-headset"></i>
+                    </div>
+                    <span>CCI Agent Dashboard</span>
+                </div>
+                <div class="live-indicator">
+                    <div class="pulse"></div>
+                    <span>LIVE</span>
+                </div>
+            </div>
+            
+            <div class="simulation-controls">
+                <button class="sim-btn" id="sim-incoming-call">
+                    <i class="fas fa-phone"></i> Simulate Call
+                </button>
+                <button class="sim-btn" id="sim-new-ticket">
+                    <i class="fas fa-plus"></i> New Ticket
+                </button>
+                <button class="sim-btn primary" id="sim-vip-request">
+                    <i class="fas fa-crown"></i> VIP Request
+                </button>
+            </div>
+            
+            <div class="agent-info">
+                <div class="agent-status status-available" id="agent-status">
+                    <div class="status-indicator available"></div>
+                    <span>Available</span>
+                </div>
+                <div class="shift-timer">
+                    <i class="far fa-clock"></i> Shift: <span id="shift-timer">07:22:15</span>
+                </div>
+            </div>
+            
+            <div class="top-bar-actions">
+                <div class="notification-container">
+                    <div class="notification-badge" id="notification-badge">
+                        <i class="fas fa-bell" style="font-size: 20px; color: var(--gray-700);"></i>
+                        <div class="notification-count" id="notification-count">3</div>
+                    </div>
+                    <div class="notification-dropdown" id="notification-dropdown">
+                        <div class="notification-header">
+                            <span>Notifications</span>
+                            <button style="background: none; border: none; color: var(--gray-500); cursor: pointer;" id="mark-all-read">
+                                Mark all read
+                            </button>
+                        </div>
+                        <div class="notification-list" id="notification-list">
+                            <!-- Notifications will be populated here -->
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="language-toggle">
+                    <button id="language-toggle" style="background: none; border: 1px solid var(--gray-300); padding: 6px 12px; border-radius: 6px; font-weight: 500;">
+                        EN <i class="fas fa-chevron-down" style="margin-left: 5px;"></i>
+                    </button>
+                    <div class="language-dropdown" id="language-dropdown">
+                        <div class="language-option" data-lang="en">
+                            <i class="fas fa-check" style="color: var(--primary); display: none;"></i>
+                            <span>English</span>
+                        </div>
+                        <div class="language-option" data-lang="ar">
+                            <i class="fas fa-check" style="color: var(--primary); display: none;"></i>
+                            <span>العربية</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <div style="width: 40px; height: 40px; border-radius: 50%; background: var(--primary); display: flex; align-items: center; justify-content: center; color: white; font-weight: 600;">AM</div>
+                    <div>
+                        <div style="font-weight: 600;">Ahmed Mohammed</div>
+                        <div style="font-size: 12px; color: var(--gray-500);">Agent ID: CCI-3382</div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Left Panel - Live Requests Queue -->
+        <aside class="left-panel">
+            <div class="panel-title">
+                <span>Live Requests Queue</span>
+                <span class="queue-count" id="queue-count">8 Active</span>
+            </div>
+            
+            <div class="filter-tabs">
+                <button class="filter-tab active" data-filter="all">All</button>
+                <button class="filter-tab" data-filter="vip">VIP</button>
+                <button class="filter-tab" data-filter="urgent">Urgent</button>
+                <button class="filter-tab" data-filter="normal">Normal</button>
+            </div>
+            
+            <div class="search-box">
+                <i class="fas fa-search search-icon"></i>
+                <input type="text" class="search-input" placeholder="Search by guest, booking or property...">
+            </div>
+            
+            <div class="queue-list" id="queue-list">
+                <!-- Queue items will be populated by JavaScript -->
+            </div>
+        </aside>
+
+        <!-- Main Panel -->
+        <main class="main-panel">
+            <!-- Guest Profile Card -->
+            <section class="main-panel-section">
+                <h2 class="section-title">
+                    <i class="fas fa-user-circle"></i> Guest Profile
+                </h2>
+                <div class="guest-info-grid" id="guest-info">
+                    <!-- Guest info will be populated by JavaScript -->
+                </div>
+            </section>
+            
+            <!-- Property Profile Card -->
+            <section class="main-panel-section">
+                <h2 class="section-title">
+                    <i class="fas fa-building"></i> Property Profile
+                </h2>
+                <div class="property-info-grid" id="property-info">
+                    <!-- Property info will be populated by JavaScript -->
+                </div>
+            </section>
+            
+            <!-- Issue Handling Panel -->
+            <section class="main-panel-section">
+                <h2 class="section-title">
+                    <i class="fas fa-tools"></i> Issue Handling
+                </h2>
+                
+                <div class="issue-category-selector">
+                    <div class="issue-category" data-category="access">Access</div>
+                    <div class="issue-category" data-category="ac">AC</div>
+                    <div class="issue-category active" data-category="cleaning">Cleaning</div>
+                    <div class="issue-category" data-category="wifi">Wi-Fi</div>
+                    <div class="issue-category" data-category="noise">Noise</div>
+                    <div class="issue-category" data-category="billing">Billing</div>
+                </div>
+                
+                <div style="margin-bottom: 20px;">
+                    <label for="issue-description" style="display: block; margin-bottom: 8px; font-weight: 500;">Issue Description</label>
+                    <textarea id="issue-description" class="text-input" placeholder="Describe the issue reported by the guest...">Guest reported that the living area was not properly cleaned upon arrival. Stains on the sofa and dust on surfaces.</textarea>
+                </div>
+                
+                <div class="quick-actions">
+                    <button class="quick-action-btn" id="assign-vendor">
+                        <i class="fas fa-user-hard-hat"></i> Assign Vendor
+                    </button>
+                    <button class="quick-action-btn" id="escalate-ticket">
+                        <i class="fas fa-exclamation-triangle"></i> Escalate
+                    </button>
+                    <button class="quick-action-btn" id="request-callback">
+                        <i class="fas fa-phone-alt"></i> Request Callback
+                    </button>
+                </div>
+                
+                <div class="status-buttons">
+                    <button class="status-btn status-open active">Open</button>
+                    <button class="status-btn status-in-progress">In Progress</button>
+                    <button class="status-btn status-resolved">Resolved</button>
+                </div>
+            </section>
+        </main>
+
+        <!-- Right Panel -->
+        <aside class="right-panel">
+            <!-- Stats Widget -->
+            <section class="stats-widget">
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <div class="stat-value" id="active-tickets">8</div>
+                        <div class="stat-label">Active Tickets</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="avg-response">4.2</div>
+                        <div class="stat-label">Avg Response (min)</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="sla-met">92%</div>
+                        <div class="stat-label">SLA Met</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="vip-tickets">3</div>
+                        <div class="stat-label">VIP Tickets</div>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- SLA & Priority Widget -->
+            <section class="sla-widget">
+                <div class="sla-header">
+                    <div>
+                        <div style="font-size: 14px; opacity: 0.9;">SLA Countdown</div>
+                        <div class="sla-timer-large" id="sla-timer">14:32</div>
+                    </div>
+                    <div class="priority-level">
+                        <i class="fas fa-crown"></i> VIP
+                    </div>
+                </div>
+                <div style="font-size: 14px; opacity: 0.9; margin-bottom: 10px;">
+                    <i class="far fa-clock"></i> Target: 15 min (VIP SLA)
+                </div>
+                <button class="escalate-btn" id="escalate-btn">
+                    <i class="fas fa-exclamation-triangle"></i> Escalate to Supervisor
+                </button>
+            </section>
+            
+            <!-- Omnichannel Communication Panel -->
+            <section class="main-panel-section" style="padding: 20px;">
+                <h2 class="section-title" style="font-size: 16px; padding-bottom: 10px;">
+                    <i class="fas fa-comments"></i> Communication
+                    <span style="font-size: 12px; font-weight: normal; color: var(--gray-500);" id="unread-messages">2 unread</span>
+                </h2>
+                
+                <div class="channel-tabs">
+                    <button class="channel-tab active" data-channel="call">Call Log</button>
+                    <button class="channel-tab has-new" data-channel="whatsapp">WhatsApp</button>
+                    <button class="channel-tab" data-channel="chat">Chat</button>
+                    <button class="channel-tab" data-channel="email">Email</button>
+                </div>
+                
+                <div class="message-history" id="message-history">
+                    <div class="message agent">
+                        <div class="message-content">
+                            Hello Mr. Al-Farsi, this is Ahmed from CCI. I understand there's a cleaning issue at the penthouse. I've assigned a cleaning team to arrive within the hour.
+                        </div>
+                        <div class="message-time">10:24 AM | Agent</div>
+                    </div>
+                    <div class="message guest">
+                        <div class="message-content">
+                            Thank you Ahmed. The sofa has visible stains and there's dust on the shelves. This is unacceptable for a luxury property.
+                        </div>
+                        <div class="message-time">10:22 AM | Guest</div>
+                    </div>
+                    <div class="message agent">
+                        <div class="message-content">
+                            I apologize for the inconvenience. We'll also offer a complimentary late checkout for your stay.
+                        </div>
+                        <div class="message-time">10:25 AM | Agent</div>
+                    </div>
+                </div>
+                
+                <div class="message-input-container">
+                    <input type="text" class="message-input" id="message-input" placeholder="Type your message...">
+                    <button class="send-btn" id="send-message">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </div>
+            </section>
+            
+            <!-- Resolution & Notes Panel -->
+            <section class="main-panel-section" style="padding: 20px;">
+                <h2 class="section-title" style="font-size: 16px; padding-bottom: 10px;">
+                    <i class="fas fa-clipboard-check"></i> Resolution & Notes
+                </h2>
+                
+                <div class="resolution-actions">
+                    <div>
+                        <label for="resolution-summary" style="display: block; margin-bottom: 8px; font-weight: 500;">Resolution Summary</label>
+                        <textarea id="resolution-summary" class="text-input" placeholder="Brief summary of how the issue was resolved...">Cleaning team dispatched immediately. Guest compensated with complimentary late checkout. Follow-up scheduled for tomorrow.</textarea>
+                    </div>
+                    
+                    <div>
+                        <label for="internal-notes" style="display: block; margin-bottom: 8px; font-weight: 500;">Internal Notes</label>
+                        <textarea id="internal-notes" class="text-input" placeholder="Internal notes not visible to guest...">Guest is a repeat VIP customer. Property manager notified about cleaning standards.</textarea>
+                    </div>
+                    
+                    <div>
+                        <label for="follow-up-date" style="display: block; margin-bottom: 8px; font-weight: 500;">Follow-up Reminder</label>
+                        <input type="date" id="follow-up-date" style="width: 100%; padding: 12px; border: 1px solid var(--gray-300); border-radius: 8px;" value="2023-10-28">
+                    </div>
+                    
+                    <button class="close-ticket-btn" id="close-ticket">
+                        <i class="fas fa-check-circle"></i> Close Ticket
+                    </button>
+                </div>
+            </section>
+        </aside>
+    </div>
+
+    <!-- Toast Notifications Container -->
+    <div class="toast-container" id="toast-container"></div>
+
+    <script>
+        // Enhanced Mock Data for the Dashboard
+        const mockQueueData = [
+            {
+                id: "TKT-1001",
+                priority: "vip",
+                guestName: "Omar Al-Farsi",
+                propertyName: "Burj Vista Penthouse",
+                issueType: "Cleaning",
+                channel: "call",
+                slaDeadline: Date.now() + 15*60*1000,
+                status: "in_progress",
+                guestId: "GST-8832",
+                bookingId: "BK-77291",
+                checkIn: "2023-10-26",
+                checkOut: "2023-10-30",
+                nationality: "UAE",
+                preferences: ["late_checkout", "quiet_room", "airport_pickup"],
+                vip: true,
+                propertyId: "PROP-221",
+                unit: "PH-12A",
+                type: "penthouse",
+                location: "Downtown Dubai, Burj Vista Tower",
+                hostContact: "Ms. Layla (+971 55 123 4567)",
+                accessMethod: "smart_lock",
+                newMessage: true,
+                unreadCount: 2
+            },
+            {
+                id: "TKT-1002",
+                priority: "urgent",
+                guestName: "Alexandra Petrova",
+                propertyName: "Palm Jumeirah Villa",
+                issueType: "AC",
+                channel: "whatsapp",
+                slaDeadline: Date.now() + 8*60*1000,
+                status: "open",
+                guestId: "GST-8833",
+                bookingId: "BK-77295",
+                checkIn: "2023-10-25",
+                checkOut: "2023-11-01",
+                nationality: "Russia",
+                preferences: ["early_checkin", "daily_cleaning"],
+                vip: false,
+                propertyId: "PROP-225",
+                unit: "Villa-8",
+                type: "villa",
+                location: "Palm Jumeirah, Frond A",
+                hostContact: "Mr. Hassan (+971 50 987 6543)",
+                accessMethod: "key_box",
+                newMessage: false,
+                unreadCount: 0
+            },
+            {
+                id: "TKT-1003",
+                priority: "normal",
+                guestName: "James Wilson",
+                propertyName: "Marina Bay Apartment",
+                issueType: "Wi-Fi",
+                channel: "chat",
+                slaDeadline: Date.now() + 30*60*1000,
+                status: "open",
+                guestId: "GST-8834",
+                bookingId: "BK-77299",
+                checkIn: "2023-10-27",
+                checkOut: "2023-10-29",
+                nationality: "UK",
+                preferences: ["high_speed_wifi", "netflix"],
+                vip: false,
+                propertyId: "PROP-230",
+                unit: "2104",
+                type: "apartment",
+                location: "Dubai Marina, Marina Bay Tower",
+                hostContact: "Mr. Ali (+971 56 111 2233)",
+                accessMethod: "smart_lock",
+                newMessage: true,
+                unreadCount: 1
+            }
+        ];
+
+        // Notifications data
+        const notifications = [
+            {
+                id: 1,
+                type: "vip",
+                title: "VIP Check-in Issue",
+                message: "Sheikh Al-Maktoum arrival delayed. Private chef waiting.",
+                timestamp: "2 min ago",
+                unread: true,
+                ticketId: "TKT-1004"
+            },
+            {
+                id: 2,
+                type: "urgent",
+                title: "SLA Warning",
+                message: "Ticket TKT-1002 approaching SLA deadline (8 min remaining)",
+                timestamp: "5 min ago",
+                unread: true,
+                ticketId: "TKT-1002"
+            },
+            {
+                id: 3,
+                type: "normal",
+                title: "New Message",
+                message: "James Wilson sent a new message about Wi-Fi issues",
+                timestamp: "12 min ago",
+                unread: true,
+                ticketId: "TKT-1003"
+            },
+            {
+                id: 4,
+                type: "normal",
+                title: "Ticket Assigned",
+                message: "New cleaning ticket assigned to you",
+                timestamp: "25 min ago",
+                unread: false,
+                ticketId: "TKT-1001"
+            }
+        ];
+
+        // Message history
+        const messageHistory = [
+            {
+                sender: "agent",
+                content: "Hello Mr. Al-Farsi, this is Ahmed from CCI. I understand there's a cleaning issue at the penthouse. I've assigned a cleaning team to arrive within the hour.",
+                timestamp: "10:24 AM"
+            },
+            {
+                sender: "guest",
+                content: "Thank you Ahmed. The sofa has visible stains and there's dust on the shelves. This is unacceptable for a luxury property.",
+                timestamp: "10:22 AM"
+            },
+            {
+                sender: "agent",
+                content: "I apologize for the inconvenience. We'll also offer a complimentary late checkout for your stay.",
+                timestamp: "10:25 AM"
+            }
+        ];
+
+        // Simulation data for new tickets
+        const simulationTickets = [
+            {
+                id: "TKT-1005",
+                priority: "vip",
+                guestName: "Sheikha Al-Maktoum",
+                propertyName: "Emirates Hills Mansion",
+                issueType: "Access",
+                channel: "call",
+                slaDeadline: Date.now() + 12*60*1000,
+                status: "open",
+                guestId: "GST-8835",
+                bookingId: "BK-77305",
+                checkIn: "2023-10-28",
+                checkOut: "2023-11-05",
+                nationality: "UAE",
+                preferences: ["security_check", "private_chef", "limousine"],
+                vip: true,
+                propertyId: "PROP-245",
+                unit: "Mansion-3",
+                type: "villa",
+                location: "Emirates Hills, District 7",
+                hostContact: "Mr. Abdullah (+971 50 555 8888)",
+                accessMethod: "security_gate",
+                newMessage: false,
+                unreadCount: 0
+            },
+            {
+                id: "TKT-1006",
+                priority: "urgent",
+                guestName: "Fatima Al-Rashid",
+                propertyName: "Dubai Hills Estate",
+                issueType: "AC",
+                channel: "whatsapp",
+                slaDeadline: Date.now() + 10*60*1000,
+                status: "open",
+                guestId: "GST-8836",
+                bookingId: "BK-77310",
+                checkIn: "2023-10-27",
+                checkOut: "2023-10-31",
+                nationality: "UAE",
+                preferences: ["early_checkin", "quiet_room"],
+                vip: false,
+                propertyId: "PROP-250",
+                unit: "Villa-12",
+                type: "villa",
+                location: "Dubai Hills Estate",
+                hostContact: "Ms. Noor (+971 55 444 3333)",
+                accessMethod: "smart_lock",
+                newMessage: false,
+                unreadCount: 0
+            },
+            {
+                id: "TKT-1007",
+                priority: "normal",
+                guestName: "Robert Chen",
+                propertyName: "Jumeirah Beach Residence",
+                issueType: "Wi-Fi",
+                channel: "chat",
+                slaDeadline: Date.now() + 45*60*1000,
+                status: "open",
+                guestId: "GST-8837",
+                bookingId: "BK-77315",
+                checkIn: "2023-10-26",
+                checkOut: "2023-10-29",
+                nationality: "Singapore",
+                preferences: ["high_speed_wifi", "beach_view"],
+                vip: false,
+                propertyId: "PROP-255",
+                unit: "1502",
+                type: "apartment",
+                location: "Jumeirah Beach Residence",
+                hostContact: "Mr. Samir (+971 50 999 1111)",
+                accessMethod: "key_box",
+                newMessage: false,
+                unreadCount: 0
+            }
+        ];
+
+        // Simulation messages
+        const simulationMessages = [
+            "The AC is not cooling properly in the master bedroom.",
+            "I cannot access the property with the smart lock code provided.",
+            "There's excessive noise from construction next door.",
+            "The Wi-Fi is too slow for video conferencing.",
+            "I found a billing discrepancy on my invoice.",
+            "The cleaning was incomplete - towels are missing.",
+            "Can I get a late checkout tomorrow?",
+            "The hot water is not working in the shower."
+        ];
+
+        // Initialize with first ticket selected
+        let selectedTicketId = "TKT-1001";
+        let shiftStartTime = Date.now() - 7 * 60 * 60 * 1000;
+        let activeSlaTimer = null;
+        let agentStatus = "available";
+        let unreadNotifications = notifications.filter(n => n.unread).length;
+        let simulationInterval = null;
+        let toastId = 0;
+
+        // DOM Elements
+        const queueList = document.getElementById('queue-list');
+        const guestInfo = document.getElementById('guest-info');
+        const propertyInfo = document.getElementById('property-info');
+        const slaTimerElement = document.getElementById('sla-timer');
+        const shiftTimerElement = document.getElementById('shift-timer');
+        const escalateBtn = document.getElementById('escalate-btn');
+        const filterTabs = document.querySelectorAll('.filter-tab');
+        const issueCategories = document.querySelectorAll('.issue-category');
+        const statusButtons = document.querySelectorAll('.status-btn');
+        const notificationBadge = document.getElementById('notification-badge');
+        const notificationDropdown = document.getElementById('notification-dropdown');
+        const notificationList = document.getElementById('notification-list');
+        const notificationCount = document.getElementById('notification-count');
+        const queueCount = document.getElementById('queue-count');
+        const toastContainer = document.getElementById('toast-container');
+        const channelTabs = document.querySelectorAll('.channel-tab');
+        const messageHistoryElement = document.getElementById('message-history');
+        const messageInput = document.getElementById('message-input');
+        const sendMessageBtn = document.getElementById('send-message');
+        const agentStatusElement = document.getElementById('agent-status');
+        const simIncomingCall = document.getElementById('sim-incoming-call');
+        const simNewTicket = document.getElementById('sim-new-ticket');
+        const simVipRequest = document.getElementById('sim-vip-request');
+        const activeTicketsElement = document.getElementById('active-tickets');
+        const unreadMessagesElement = document.getElementById('unread-messages');
+
+        // Initialize the dashboard
+        function initDashboard() {
+            renderQueueList();
+            updateSelectedTicketDisplay();
+            startTimers();
+            setupEventListeners();
+            renderNotifications();
+            updateStats();
+            startSimulation();
+        }
+
+        // Render the queue list
+        function renderQueueList(filter = 'all') {
+            queueList.innerHTML = '';
+            
+            let filteredQueue = mockQueueData;
+            if (filter !== 'all') {
+                filteredQueue = mockQueueData.filter(ticket => ticket.priority === filter);
+            }
+            
+            filteredQueue.forEach(ticket => {
+                const queueItem = document.createElement('div');
+                queueItem.className = `queue-item ${ticket.id === selectedTicketId ? 'active' : ''}`;
+                queueItem.dataset.id = ticket.id;
+                
+                // Calculate remaining SLA time
+                const remainingTime = Math.max(0, Math.floor((ticket.slaDeadline - Date.now()) / 1000));
+                const minutes = Math.floor(remainingTime / 60);
+                const seconds = remainingTime % 60;
+                const slaFormatted = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                
+                // Determine SLA criticality
+                const isCritical = minutes < 10;
+                
+                queueItem.innerHTML = `
+                    <div class="priority-badge priority-${ticket.priority}"></div>
+                    ${ticket.newMessage ? '<div class="incoming-alert"><i class="fas fa-envelope"></i></div>' : ''}
+                    <div class="queue-header">
+                        <div>
+                            <div class="guest-name">${ticket.guestName} ${ticket.vip ? '<i class="fas fa-crown" style="color: #d4af37; margin-left: 5px;"></i>' : ''}</div>
+                            <div class="property-name">${ticket.propertyName}</div>
+                        </div>
+                        <div class="channel-badge channel-${ticket.channel}">${ticket.channel.toUpperCase()}</div>
+                    </div>
+                    <div class="queue-details">
+                        <div class="issue-type">
+                            <i class="fas fa-${getIssueIcon(ticket.issueType)}"></i> ${ticket.issueType}
+                        </div>
+                        <div class="sla-timer ${isCritical ? 'sla-critical' : ''}">
+                            <i class="far fa-clock"></i> ${slaFormatted}
+                        </div>
+                    </div>
+                `;
+                
+                queueItem.addEventListener('click', () => {
+                    selectedTicketId = ticket.id;
+                    updateSelectedTicketDisplay();
+                    renderQueueList();
+                    // Mark as read when clicked
+                    ticket.newMessage = false;
+                    ticket.unreadCount = 0;
+                    updateUnreadMessages();
+                });
+                
+                queueList.appendChild(queueItem);
+            });
+            
+            // Update queue count
+            queueCount.textContent = `${mockQueueData.length} Active`;
+        }
+
+        // Update the display for the selected ticket
+        function updateSelectedTicketDisplay() {
+            const selectedTicket = mockQueueData.find(ticket => ticket.id === selectedTicketId);
+            if (!selectedTicket) return;
+            
+            // Update guest info
+            guestInfo.innerHTML = `
+                <div class="info-item">
+                    <div class="info-label">Guest Name</div>
+                    <div class="info-value">${selectedTicket.guestName} ${selectedTicket.vip ? '<span class="vip-flag"><i class="fas fa-crown"></i> VIP</span>' : ''}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Booking ID</div>
+                    <div class="info-value">${selectedTicket.bookingId}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Check-in / Check-out</div>
+                    <div class="info-value">${formatDate(selectedTicket.checkIn)} → ${formatDate(selectedTicket.checkOut)}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Nationality</div>
+                    <div class="info-value">${selectedTicket.nationality}</div>
+                </div>
+                <div class="info-item" style="grid-column: span 2;">
+                    <div class="info-label">Preferences</div>
+                    <div class="preferences-list">
+                        ${selectedTicket.preferences.map(pref => `<span class="preference-tag">${formatPreference(pref)}</span>`).join('')}
+                    </div>
+                </div>
+            `;
+            
+            // Update property info
+            propertyInfo.innerHTML = `
+                <div class="info-item">
+                    <div class="info-label">Property Name</div>
+                    <div class="info-value">${selectedTicket.propertyName}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Unit Number</div>
+                    <div class="info-value">${selectedTicket.unit}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Property Type</div>
+                    <div class="info-value"><i class="fas fa-${getPropertyIcon(selectedTicket.type)}"></i> ${selectedTicket.type.charAt(0).toUpperCase() + selectedTicket.type.slice(1)}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Location</div>
+                    <div class="info-value">${selectedTicket.location}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Host Contact</div>
+                    <div class="info-value">${selectedTicket.hostContact}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Access Method</div>
+                    <div class="info-value"><i class="fas fa-${selectedTicket.accessMethod === 'smart_lock' ? 'key' : 'lock'}"></i> ${formatAccessMethod(selectedTicket.accessMethod)}</div>
+                </div>
+            `;
+            
+            // Update SLA timer
+            updateSlaTimer();
+            
+            // Update issue description based on selected ticket
+            const issueDesc = document.getElementById('issue-description');
+            issueDesc.value = `Guest reported ${selectedTicket.issueType.toLowerCase()} issue at ${selectedTicket.propertyName}.`;
+            
+            // Update channel tabs
+            updateChannelTabs(selectedTicket.channel);
+        }
+
+        // Update channel tabs to highlight active channel
+        function updateChannelTabs(activeChannel) {
+            channelTabs.forEach(tab => {
+                tab.classList.remove('active');
+                if (tab.dataset.channel === activeChannel) {
+                    tab.classList.add('active');
+                }
+            });
+        }
+
+        // Start all timers
+        function startTimers() {
+            // Update shift timer every second
+            setInterval(() => {
+                const elapsed = Date.now() - shiftStartTime;
+                const hours = Math.floor(elapsed / (1000 * 60 * 60));
+                const minutes = Math.floor((elapsed % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((elapsed % (1000 * 60)) / 1000);
+                
+                shiftTimerElement.textContent = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            }, 1000);
+            
+            // Update SLA timer every second
+            if (activeSlaTimer) clearInterval(activeSlaTimer);
+            
+            activeSlaTimer = setInterval(updateSlaTimer, 1000);
+        }
+
+        // Update the SLA timer display
+        function updateSlaTimer() {
+            const selectedTicket = mockQueueData.find(ticket => ticket.id === selectedTicketId);
+            if (!selectedTicket) return;
+            
+            const remainingTime = Math.max(0, Math.floor((selectedTicket.slaDeadline - Date.now()) / 1000));
+            const minutes = Math.floor(remainingTime / 60);
+            const seconds = remainingTime % 60;
+            
+            slaTimerElement.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            
+            // Update critical state
+            if (minutes < 5) {
+                slaTimerElement.style.color = '#ff5252';
+                escalateBtn.style.backgroundColor = '#d32f2f';
+            } else if (minutes < 10) {
+                slaTimerElement.style.color = '#ff9800';
+                escalateBtn.style.backgroundColor = '';
+            } else {
+                slaTimerElement.style.color = 'white';
+                escalateBtn.style.backgroundColor = '';
+            }
+            
+            // If SLA is breached
+            if (remainingTime === 0) {
+                slaTimerElement.textContent = "00:00";
+                slaTimerElement.style.color = '#ff5252';
+                escalateBtn.style.backgroundColor = '#d32f2f';
+                
+                // Show SLA breach notification
+                if (!selectedTicket.slaBreachNotified) {
+                    showToast("SLA Breached", `Ticket ${selectedTicket.id} has exceeded SLA`, "urgent");
+                    selectedTicket.slaBreachNotified = true;
+                }
+            }
+        }
+
+        // Render notifications
+        function renderNotifications() {
+            notificationList.innerHTML = '';
+            notificationCount.textContent = unreadNotifications;
+            
+            notifications.forEach(notification => {
+                const notificationItem = document.createElement('div');
+                notificationItem.className = `notification-item ${notification.unread ? 'unread' : ''}`;
+                notificationItem.dataset.id = notification.id;
+                
+                notificationItem.innerHTML = `
+                    <div style="display: flex; align-items: flex-start;">
+                        <div class="notification-icon notification-${notification.type}">
+                            <i class="fas ${getNotificationIcon(notification.type)}"></i>
+                        </div>
+                        <div style="flex: 1;">
+                            <div style="font-weight: 600; margin-bottom: 4px;">${notification.title}</div>
+                            <div style="font-size: 13px; color: var(--gray-700); margin-bottom: 4px;">${notification.message}</div>
+                            <div style="font-size: 11px; color: var(--gray-500);">${notification.timestamp}</div>
+                        </div>
+                    </div>
+                `;
+                
+                notificationItem.addEventListener('click', () => {
+                    // Mark as read
+                    notification.unread = false;
+                    unreadNotifications--;
+                    renderNotifications();
+                    
+                    // If notification has a ticket ID, select that ticket
+                    if (notification.ticketId) {
+                        const ticket = mockQueueData.find(t => t.id === notification.ticketId);
+                        if (ticket) {
+                            selectedTicketId = ticket.id;
+                            updateSelectedTicketDisplay();
+                            renderQueueList();
+                        }
+                    }
+                    
+                    // Close dropdown
+                    notificationDropdown.classList.remove('active');
+                });
+                
+                notificationList.appendChild(notificationItem);
+            });
+        }
+
+        // Show toast notification
+        function showToast(title, message, type = "normal") {
+            toastId++;
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.id = `toast-${toastId}`;
+            
+            toast.innerHTML = `
+                <div class="toast-icon notification-${type}">
+                    <i class="fas ${getNotificationIcon(type)}"></i>
+                </div>
+                <div class="toast-content">
+                    <div class="toast-title">${title}</div>
+                    <div class="toast-message">${message}</div>
+                </div>
+                <button class="toast-close" data-toast="${toastId}">&times;</button>
+            `;
+            
+            toastContainer.appendChild(toast);
+            
+            // Auto remove after 5 seconds
+            setTimeout(() => {
+                const toastToRemove = document.getElementById(`toast-${toastId}`);
+                if (toastToRemove) {
+                    toastToRemove.style.animation = 'slideInRight 0.3s ease reverse';
+                    setTimeout(() => {
+                        if (toastToRemove.parentNode) {
+                            toastToRemove.parentNode.removeChild(toastToRemove);
+                        }
+                    }, 300);
+                }
+            }, 5000);
+            
+            // Play notification sound
+            playNotificationSound(type);
+        }
+
+        // Play notification sound
+        function playNotificationSound(type) {
+            // In a real app, we would play actual sound files
+            // For this demo, we'll just log to console
+            console.log(`Playing ${type} notification sound`);
+        }
+
+        // Add a new ticket
+        function addNewTicket(ticket) {
+            // Add new message flag
+            ticket.newMessage = true;
+            ticket.unreadCount = 1;
+            
+            // Add to queue
+            mockQueueData.unshift(ticket);
+            
+            // Show notification
+            showToast("New Ticket Assigned", `${ticket.guestName} - ${ticket.issueType} issue at ${ticket.propertyName}`, ticket.priority);
+            
+            // Add notification
+            const newNotification = {
+                id: notifications.length + 1,
+                type: ticket.priority,
+                title: `New ${ticket.priority === 'vip' ? 'VIP ' : ''}Ticket`,
+                message: `${ticket.guestName} - ${ticket.issueType} issue at ${ticket.propertyName}`,
+                timestamp: "Just now",
+                unread: true,
+                ticketId: ticket.id
+            };
+            
+            notifications.unshift(newNotification);
+            unreadNotifications++;
+            
+            // Update UI
+            renderQueueList();
+            renderNotifications();
+            updateStats();
+            
+            // Highlight the new ticket
+            const newQueueItem = document.querySelector(`.queue-item[data-id="${ticket.id}"]`);
+            if (newQueueItem) {
+                newQueueItem.classList.add('new-request');
+                setTimeout(() => {
+                    newQueueItem.classList.remove('new-request');
+                }, 2000);
+            }
+        }
+
+        // Simulate incoming call
+        function simulateIncomingCall() {
+            if (agentStatus === "on-call") {
+                alert("Agent is already on a call!");
+                return;
+            }
+            
+            // Change agent status
+            agentStatus = "on-call";
+            agentStatusElement.className = "agent-status status-on-call";
+            agentStatusElement.innerHTML = `
+                <div class="status-indicator on-call"></div>
+                <span>On Call</span>
+            `;
+            
+            // Show notification
+            showToast("Incoming Call", "VIP Guest - Omar Al-Farsi calling about cleaning issue", "vip");
+            
+            // Auto return to available after 2 minutes
+            setTimeout(() => {
+                agentStatus = "available";
+                agentStatusElement.className = "agent-status status-available";
+                agentStatusElement.innerHTML = `
+                    <div class="status-indicator available"></div>
+                    <span>Available</span>
+                `;
+            }, 120000);
+        }
+
+        // Add incoming message
+        function addIncomingMessage() {
+            const selectedTicket = mockQueueData.find(ticket => ticket.id === selectedTicketId);
+            if (!selectedTicket) return;
+            
+            // Get random message
+            const randomMessage = simulationMessages[Math.floor(Math.random() * simulationMessages.length)];
+            
+            // Add to message history
+            const newMessage = {
+                sender: "guest",
+                content: randomMessage,
+                timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+            };
+            
+            messageHistory.unshift(newMessage);
+            
+            // Update UI
+            const messageElement = document.createElement('div');
+            messageElement.className = 'message guest incoming-message';
+            messageElement.innerHTML = `
+                <div class="message-content">${randomMessage}</div>
+                <div class="message-time">${newMessage.timestamp} | Guest</div>
+            `;
+            
+            messageHistoryElement.prepend(messageElement);
+            
+            // Mark ticket as having new message
+            selectedTicket.newMessage = true;
+            selectedTicket.unreadCount = (selectedTicket.unreadCount || 0) + 1;
+            
+            // Show notification
+            showToast("New Message", `${selectedTicket.guestName} sent a new message`, selectedTicket.priority);
+            
+            // Update UI
+            renderQueueList();
+            updateUnreadMessages();
+            
+            // Scroll to top of message history
+            messageHistoryElement.scrollTop = 0;
+        }
+
+        // Update unread messages count
+        function updateUnreadMessages() {
+            let totalUnread = 0;
+            mockQueueData.forEach(ticket => {
+                totalUnread += ticket.unreadCount || 0;
+            });
+            
+            unreadMessagesElement.textContent = `${totalUnread} unread`;
+            
+            // Update channel tabs
+            channelTabs.forEach(tab => {
+                if (tab.dataset.channel === "whatsapp") {
+                    if (totalUnread > 0) {
+                        tab.classList.add('has-new');
+                    } else {
+                        tab.classList.remove('has-new');
+                    }
+                }
+            });
+        }
+
+        // Update statistics
+        function updateStats() {
+            const vipTickets = mockQueueData.filter(ticket => ticket.priority === 'vip').length;
+            const urgentTickets = mockQueueData.filter(ticket => ticket.priority === 'urgent').length;
+            const totalTickets = mockQueueData.length;
+            
+            activeTicketsElement.textContent = totalTickets;
+            document.getElementById('vip-tickets').textContent = vipTickets;
+            
+            // Simulate some stats
+            const avgResponse = (3 + Math.random()).toFixed(1);
+            const slaMet = Math.floor(85 + Math.random() * 15);
+            
+            document.getElementById('avg-response').textContent = avgResponse;
+            document.getElementById('sla-met').textContent = `${slaMet}%`;
+        }
+
+        // Start simulation of incoming requests
+        function startSimulation() {
+            // Simulate incoming messages every 30-60 seconds
+            simulationInterval = setInterval(() => {
+                // 30% chance of new message
+                if (Math.random() < 0.3) {
+                    setTimeout(addIncomingMessage, Math.random() * 3000);
+                }
+                
+                // 10% chance of new ticket
+                if (Math.random() < 0.1) {
+                    setTimeout(() => {
+                        const randomTicket = simulationTickets[Math.floor(Math.random() * simulationTickets.length)];
+                        addNewTicket({...randomTicket, id: `TKT-${1000 + mockQueueData.length + 1}`});
+                    }, Math.random() * 5000);
+                }
+            }, 30000);
+        }
+
+        // Set up event listeners
+        function setupEventListeners() {
+            // Filter tabs
+            filterTabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    filterTabs.forEach(t => t.classList.remove('active'));
+                    tab.classList.add('active');
+                    renderQueueList(tab.dataset.filter);
+                });
+            });
+            
+            // Issue category selection
+            issueCategories.forEach(category => {
+                category.addEventListener('click', () => {
+                    issueCategories.forEach(c => c.classList.remove('active'));
+                    category.classList.add('active');
+                    
+                    // Update issue description placeholder based on category
+                    const issueDesc = document.getElementById('issue-description');
+                    const categoryText = category.dataset.category.toUpperCase();
+                    issueDesc.placeholder = `Describe the ${categoryText} issue reported by the guest...`;
+                });
+            });
+            
+            // Status buttons
+            statusButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    statusButtons.forEach(b => b.classList.remove('active'));
+                    button.classList.add('active');
+                    
+                    // Update ticket status
+                    const selectedTicket = mockQueueData.find(ticket => ticket.id === selectedTicketId);
+                    if (selectedTicket) {
+                        const statusMap = {
+                            'Open': 'open',
+                            'In Progress': 'in_progress',
+                            'Resolved': 'resolved'
+                        };
+                        selectedTicket.status = statusMap[button.textContent];
+                    }
+                });
+            });
+            
+            // Escalate button
+            escalateBtn.addEventListener('click', () => {
+                const selectedTicket = mockQueueData.find(ticket => ticket.id === selectedTicketId);
+                showToast("Ticket Escalated", `${selectedTicket.id} escalated to supervisor`, "urgent");
+                escalateBtn.innerHTML = '<i class="fas fa-check"></i> Escalated';
+                escalateBtn.style.backgroundColor = '#2e7d32';
+                setTimeout(() => {
+                    escalateBtn.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Escalate to Supervisor';
+                    escalateBtn.style.backgroundColor = '';
+                }, 2000);
+            });
+            
+            // Close ticket button
+            document.getElementById('close-ticket').addEventListener('click', () => {
+                if (confirm('Are you sure you want to close this ticket?')) {
+                    // Remove ticket from queue
+                    const index = mockQueueData.findIndex(ticket => ticket.id === selectedTicketId);
+                    if (index !== -1) {
+                        mockQueueData.splice(index, 1);
+                        
+                        // Select next ticket if available
+                        if (mockQueueData.length > 0) {
+                            selectedTicketId = mockQueueData[0].id;
+                        } else {
+                            selectedTicketId = null;
+                        }
+                        
+                        // Update UI
+                        renderQueueList();
+                        updateSelectedTicketDisplay();
+                        updateStats();
+                        
+                        showToast("Ticket Closed", "Ticket has been successfully closed", "success");
+                    }
+                }
+            });
+            
+            // Search functionality
+            document.querySelector('.search-input').addEventListener('input', (e) => {
+                const searchTerm = e.target.value.toLowerCase();
+                const queueItems = document.querySelectorAll('.queue-item');
+                
+                queueItems.forEach(item => {
+                    const guestName = item.querySelector('.guest-name').textContent.toLowerCase();
+                    const propertyName = item.querySelector('.property-name').textContent.toLowerCase();
+                    const isVisible = guestName.includes(searchTerm) || propertyName.includes(searchTerm);
+                    item.style.display = isVisible ? 'block' : 'none';
+                });
+            });
+            
+            // Notification bell
+            notificationBadge.addEventListener('click', (e) => {
+                e.stopPropagation();
+                notificationDropdown.classList.toggle('active');
+            });
+            
+            // Mark all notifications as read
+            document.getElementById('mark-all-read').addEventListener('click', () => {
+                notifications.forEach(notification => {
+                    notification.unread = false;
+                });
+                unreadNotifications = 0;
+                renderNotifications();
+            });
+            
+            // Language toggle
+            document.getElementById('language-toggle').addEventListener('click', (e) => {
+                e.stopPropagation();
+                document.getElementById('language-dropdown').classList.toggle('active');
+            });
+            
+            // Close dropdowns when clicking outside
+            document.addEventListener('click', () => {
+                notificationDropdown.classList.remove('active');
+                document.getElementById('language-dropdown').classList.remove('active');
+            });
+            
+            // Stop propagation for dropdowns
+            notificationDropdown.addEventListener('click', (e) => e.stopPropagation());
+            document.getElementById('language-dropdown').addEventListener('click', (e) => e.stopPropagation());
+            
+            // Language selection
+            document.querySelectorAll('.language-option').forEach(option => {
+                option.addEventListener('click', () => {
+                    const lang = option.dataset.lang;
+                    document.querySelectorAll('.language-option i').forEach(icon => {
+                        icon.style.display = 'none';
+                    });
+                    option.querySelector('i').style.display = 'inline-block';
+                    document.getElementById('language-toggle').innerHTML = `${lang.toUpperCase()} <i class="fas fa-chevron-down" style="margin-left: 5px;"></i>`;
+                    document.getElementById('language-dropdown').classList.remove('active');
+                });
+            });
+            
+            // Toast close buttons
+            document.addEventListener('click', (e) => {
+                if (e.target.classList.contains('toast-close')) {
+                    const toastId = e.target.dataset.toast;
+                    const toast = document.getElementById(`toast-${toastId}`);
+                    if (toast) {
+                        toast.style.animation = 'slideInRight 0.3s ease reverse';
+                        setTimeout(() => {
+                            if (toast.parentNode) {
+                                toast.parentNode.removeChild(toast);
+                            }
+                        }, 300);
+                    }
+                }
+            });
+            
+            // Send message
+            sendMessageBtn.addEventListener('click', () => {
+                const message = messageInput.value.trim();
+                if (message) {
+                    const timestamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                    
+                    const messageElement = document.createElement('div');
+                    messageElement.className = 'message agent incoming-message';
+                    messageElement.innerHTML = `
+                        <div class="message-content">${message}</div>
+                        <div class="message-time">${timestamp} | Agent</div>
+                    `;
+                    
+                    messageHistoryElement.prepend(messageElement);
+                    messageInput.value = '';
+                    
+                    // Simulate response after 2-5 seconds
+                    setTimeout(() => {
+                        addIncomingMessage();
+                    }, 2000 + Math.random() * 3000);
+                }
+            });
+            
+            // Enter key to send message
+            messageInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    sendMessageBtn.click();
+                }
+            });
+            
+            // Agent status toggle
+            agentStatusElement.addEventListener('click', () => {
+                if (agentStatus === "available") {
+                    agentStatus = "on-call";
+                    agentStatusElement.className = "agent-status status-on-call";
+                    agentStatusElement.innerHTML = `
+                        <div class="status-indicator on-call"></div>
+                        <span>On Call</span>
+                    `;
+                } else {
+                    agentStatus = "available";
+                    agentStatusElement.className = "agent-status status-available";
+                    agentStatusElement.innerHTML = `
+                        <div class="status-indicator available"></div>
+                        <span>Available</span>
+                    `;
+                }
+            });
+            
+            // Simulation buttons
+            simIncomingCall.addEventListener('click', simulateIncomingCall);
+            
+            simNewTicket.addEventListener('click', () => {
+                const randomTicket = simulationTickets[Math.floor(Math.random() * simulationTickets.length)];
+                addNewTicket({...randomTicket, id: `TKT-${1000 + mockQueueData.length + 1}`});
+            });
+            
+            simVipRequest.addEventListener('click', () => {
+                const vipTicket = {
+                    ...simulationTickets[0],
+                    id: `TKT-${1000 + mockQueueData.length + 1}`,
+                    guestName: "Prince Abdullah Al-Saud",
+                    propertyName: "Royal Penthouse Dubai",
+                    issueType: "Access",
+                    channel: "call"
+                };
+                addNewTicket(vipTicket);
+            });
+            
+            // Assign vendor button
+            document.getElementById('assign-vendor').addEventListener('click', () => {
+                const vendors = ["CleanPro Dubai", "AC Experts UAE", "Smart Lock Solutions", "Wi-Fi Tech Gulf"];
+                const randomVendor = vendors[Math.floor(Math.random() * vendors.length)];
+                showToast("Vendor Assigned", `${randomVendor} assigned to ticket`, "normal");
+            });
+            
+            // Escalate ticket button
+            document.getElementById('escalate-ticket').addEventListener('click', () => {
+                showToast("Ticket Escalated", "Ticket escalated to supervisor for review", "urgent");
+            });
+            
+            // Request callback button
+            document.getElementById('request-callback').addEventListener('click', () => {
+                showToast("Callback Requested", "Guest has been notified for a callback", "normal");
+            });
+        }
+
+        // Helper functions
+        function getIssueIcon(issueType) {
+            const icons = {
+                'Cleaning': 'broom',
+                'AC': 'snowflake',
+                'Wi-Fi': 'wifi',
+                'Access': 'key',
+                'Noise': 'volume-up',
+                'Billing': 'file-invoice-dollar'
+            };
+            return icons[issueType] || 'question-circle';
+        }
+
+        function getNotificationIcon(type) {
+            const icons = {
+                'vip': 'crown',
+                'urgent': 'exclamation-triangle',
+                'normal': 'info-circle',
+                'success': 'check-circle'
+            };
+            return icons[type] || 'bell';
+        }
+
+        function getPropertyIcon(propertyType) {
+            const icons = {
+                'penthouse': 'building',
+                'apartment': 'building',
+                'villa': 'home'
+            };
+            return icons[propertyType] || 'building';
+        }
+
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        }
+
+        function formatPreference(pref) {
+            const preferences = {
+                'late_checkout': 'Late Checkout',
+                'quiet_room': 'Quiet Room',
+                'airport_pickup': 'Airport Pickup',
+                'early_checkin': 'Early Check-in',
+                'daily_cleaning': 'Daily Cleaning',
+                'high_speed_wifi': 'High-speed WiFi',
+                'netflix': 'Netflix',
+                'security_check': 'Security Check',
+                'private_chef': 'Private Chef',
+                'limousine': 'Limousine Service',
+                'beach_view': 'Beach View'
+            };
+            return preferences[pref] || pref;
+        }
+
+        function formatAccessMethod(method) {
+            const methods = {
+                'smart_lock': 'Smart Lock',
+                'key_box': 'Key Box',
+                'security_gate': 'Security Gate'
+            };
+            return methods[method] || method;
+        }
+
+        // Initialize the dashboard when the page loads
+        document.addEventListener('DOMContentLoaded', initDashboard);
+    </script>
+</body>
+</html>
